@@ -29,9 +29,12 @@ web browser gets your likes from Twitter.com:
     1) Copy the `Authorization` value and save as `HEADER_AUTHORIZATION` in `config.json`
     2) Copy the `Cookies` value and save as `HEADER_COOKIES` in `config.json`
     3) Copy the `x-csrf-token` value and save as `HEADER_CSRF` in `config.json`
-   * You may have to replace quotation marks in your request header items with escaped quotations (ex. `"EXAMPLE": "SOMETHING "QUOTED"", ` needs to become `"EXAMPLE": "SOMETHING \"QUOTED\"", `)
+   * You may have to replace quotation marks in your request header items with escaped quotations 
+(ex. `"EXAMPLE": "SOMETHING "QUOTED"", ` needs to become `"EXAMPLE": "SOMETHING \"QUOTED\"", `)
+   * If you get the error `json.decoder.JSONDecodError: Expecting ',' delimiter line XXX column YYY (char ZZZ)`, you are
+likely missing a comma at the end of one of the lines of your config.json files. 
 5. Find your Twitter user ID (NOT username) and save as `USER_ID` in `config.json`
-    1) Can be found in the `\Likes` request params
+    1) Can be found in the `/Likes` request params
     2) Alternatively, go to `https://commentpicker.com`, and type in your username.
 
 ### Download Likes to JSON
