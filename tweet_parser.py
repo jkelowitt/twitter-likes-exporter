@@ -3,6 +3,7 @@ class TweetParser:
         self.is_valid_tweet = True
         self.raw_tweet_json = raw_tweet_json
         self._media_urls = None
+        self._video_urls = None
 
         _tweet_id = raw_tweet_json['entryId'].split('-')[1]
         _twitter_link = f"https://x.com/_/status/{_tweet_id}"
@@ -35,6 +36,7 @@ class TweetParser:
             "user_avatar_url": self.user_avatar_url,
             "tweet_content": self.tweet_content,
             "tweet_media_urls": self.media_urls,
+            "tweet_video_urls": self.video_urls,
             "tweet_created_at": self.tweet_created_at
         }
 
@@ -78,3 +80,15 @@ class TweetParser:
             for entry in media_entries:
                 self._media_urls.append(entry["media_url_https"])
         return self._media_urls
+
+    @property
+    def video_urls(self):
+        if self._video_urls is None:
+            self._video_urls = []
+            if "extended_entities" in self.key_data["legacy"]:
+                media_entries = self.key_data["legacy"]["extended_entities"].get("media", [])
+                for entry in media_entries:
+                    if "video_info" in entry:
+                        for variant in entry["video_info"]["variants"]:
+                            self._video_urls.append(variant["url"])
+        return self._video_urls
