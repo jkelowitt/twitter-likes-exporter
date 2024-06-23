@@ -43,7 +43,7 @@ class TweetParser:
 
         if "result" not in raw_tweet_json["content"]["itemContent"]["tweet_results"]:
             self.is_valid_tweet = False
-            print(f"\nTried to retrieve ({_twitter_link}), and failed to get any data")
+            # print(f"\nTried to retrieve ({_twitter_link}), and failed to get any data")
             return
 
         self.key_data = raw_tweet_json["content"]["itemContent"]["tweet_results"]["result"]
@@ -51,7 +51,7 @@ class TweetParser:
         legacy_tweet = not self.key_data.get("legacy", None)
         if legacy_tweet:
             self.is_valid_tweet = False
-            print(f"\nTried to retrieve ({_twitter_link}), but it's a legacy (?) tweet")
+            # print(f"\nTried to retrieve ({_twitter_link}), but it's a legacy (?) tweet")
             return
 
     def tweet_as_json(self):
