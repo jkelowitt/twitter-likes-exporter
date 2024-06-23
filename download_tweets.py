@@ -1,7 +1,11 @@
 import json
+import time
+
 import requests
+from tqdm import tqdm
 
 from tweet_parser import TweetParser
+
 
 class TweetDownloader():
 
@@ -23,16 +27,24 @@ class TweetDownloader():
         old_page_cursor = None
         current_page = 1
 
-        while likes_page and page_cursor and page_cursor != old_page_cursor:
-            print(f"Fetching likes page: {current_page}...")
+        pbar = tqdm(desc="Parsing tweets")
+        while likes_page and page_cursor and (page_cursor != old_page_cursor):
             current_page += 1
             for raw_tweet in likes_page:
                 tweet_parser = TweetParser(raw_tweet)
                 if tweet_parser.is_valid_tweet:
-                    all_tweets.append(tweet_parser.tweet_as_json())
+                    tweet_json = tweet_parser.tweet_as_json()
+                    all_tweets.append(tweet_json)
+                    pbar.update(1)
+
             old_page_cursor = page_cursor
             likes_page = self.retrieve_likes_page(cursor=page_cursor)
             page_cursor = self.get_cursor(likes_page)
+            if page_cursor == old_page_cursor:
+                print("\nPossibly rate limited by twitter, reattempting getting the likes page in 5 seconds...")
+                time.sleep(5)
+                likes_page = self.retrieve_likes_page(cursor=page_cursor)
+                page_cursor = self.get_cursor(likes_page)
 
         with open(self.output_json_file_path, 'w') as f:
             f.write(json.dumps(all_tweets))
@@ -86,7 +98,8 @@ class TweetDownloader():
             'Accept-Language': 'en-US,en;q=0.9',
             'Host': 'api.twitter.com',
             'Origin': 'https://twitter.com',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
             'Referer': 'https://twitter.com/',
             'Connection': 'keep-alive',
             'Cookie': self.header_cookie,
@@ -115,6 +128,7 @@ class TweetDownloader():
             "responsive_web_text_conversations_enabled": False,
             "responsive_web_enhance_cards_enabled": False
         }
+
 
 if __name__ == '__main__':
     downloader = TweetDownloader()
