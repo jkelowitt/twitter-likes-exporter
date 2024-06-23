@@ -49,7 +49,12 @@ class TweetDownloader():
         return self.extract_likes_entries(response.json())
 
     def extract_likes_entries(self, raw_data):
-        return raw_data['data']['user']['result']['timeline_v2']['timeline']['instructions'][0]['entries']
+        if "errors" in raw_data.keys():
+            error = raw_data["errors"][0]  # Arbitrarily limits to one error at a time
+            err_msg = f"Twitter (X) returned code {error['code']}: {error['message']}"
+            raise ValueError(err_msg)
+        else:
+            return raw_data['data']['user']['result']['timeline_v2']['timeline']['instructions'][0]['entries']
 
     def get_cursor(self, page_json):
         return page_json[-1]['content']['value']
