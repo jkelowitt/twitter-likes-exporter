@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import time
 
 import requests
 from tqdm import tqdm
@@ -18,11 +19,33 @@ def make_containing_dir(fp: str) -> None:
 
 
 def save_remote_media(remote_url, local_path):
+    reattempt = False
+    img_data = None
+
     if os.path.exists(local_path):
         return  # Don't re-download an image
     make_containing_dir(local_path)
 
-    img_data = requests.get(remote_url).content
+    # Download the requested media
+    try:
+        img_data = requests.get(remote_url).content
+    except requests.exceptions.ConnectionError as e:
+        print("Attempted download failed, retrying 3 times, 10 seconds apart")
+        reattempt = True
+
+    # Automatically retry if Twitter refuses our connection
+    if reattempt:
+        for _ in range(3):
+            time.sleep(10)
+            try:
+                img_data = requests.get(remote_url).content
+            except requests.exceptions.ConnectionError:
+                ...  # Try, try again
+            if img_data:
+                print("Success, continuing")
+
+        raise requests.exceptions.ConnectionError(f"Automatic and manual retries exceeded for downloading {remote_url}")
+
     with open(local_path, 'wb') as handler:
         handler.write(img_data)
 
@@ -58,7 +81,7 @@ class ParseTweetsJSONtoHTML:
         output_html = '<div class="tweet_wrapper">'
 
         if self.download_images:
-            user_image_src = f'images/avatars/{tweet_data["user_id"]}.jpg'
+            user_image_src = f'avatars/{tweet_data["user_id"]}.jpg'
             full_path = f"{self.output_html_directory}/{user_image_src}"
             save_remote_media(tweet_data["user_avatar_url"], full_path)
         else:
@@ -95,7 +118,7 @@ class ParseTweetsJSONtoHTML:
                 for media_url in tweet_data["tweet_media_urls"]:
                     if self.download_images:
                         media_name = media_url.split("/")[-1]
-                        user_image_path = f'images/tweets/{media_name}'
+                        user_image_path = f'images/{media_name}'
                         full_path = f"{self.output_html_directory}/{user_image_path}"
                         save_remote_media(media_url, full_path)
                     else:
@@ -123,8 +146,8 @@ class ParseTweetsJSONtoHTML:
             individual_tweet_file.write('<title>Liked Tweets Export</title>')
             individual_tweet_file.write('<link rel="stylesheet" href="../styles.css"></head>')
             individual_tweet_file.write('<body><div class="tweet_list">')
-            adjusted_html = output_html.replace("images/avatars", "../images/avatars")
-            adjusted_html = adjusted_html.replace("images/tweets", "../images/tweets")
+            adjusted_html = output_html.replace("avatars", "../avatars")
+            adjusted_html = adjusted_html.replace("images", "../images")
             individual_tweet_file.write(adjusted_html)
             individual_tweet_file.write('</div></body></html>')
 
@@ -138,7 +161,7 @@ class ParseTweetsJSONtoHTML:
     def output_html_directory(self):
         if not self._output_html_directory:
             script_dir = os.path.dirname(__file__)
-            self._output_html_directory = os.path.join(script_dir, 'tweet_likes_html')
+            self._output_html_directory = os.path.join(script_dir, 'html')
         return self._output_html_directory
 
     @property
