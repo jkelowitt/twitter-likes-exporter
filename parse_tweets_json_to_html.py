@@ -108,7 +108,7 @@ class ParseTweetsJSONtoHTML:
                 else:
                     user_video_path = media_url
                 output_html += f"<div class='tweet_video'><video controls preload='none' "
-                output_html += f"poster='{tweet_data['tweet_media_urls'][0]}'><a href='{user_video_path}' "
+                output_html += f"poster='{tweet_data['tweet_video_urls'][0]}'><a href='{user_video_path}' "
                 output_html += f"target='_blank'>Download video</a><source src='{user_video_path}' "
                 output_html += f"type='video/mp4' /></video></div>"
             output_html += "</div>\n"
