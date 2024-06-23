@@ -9,9 +9,18 @@ def parse_text_for_html(input_text):
     return input_text.encode('ascii', 'xmlcharrefreplace').decode()
 
 
+def make_containing_dir(fp: str) -> None:
+    """ Create the parent directories required for the file `fp` """
+    containing_dir = os.path.dirname(fp)
+    if not os.path.isdir(containing_dir):
+        os.makedirs(containing_dir)
+
+
 def save_remote_image(remote_url, local_path):
     if os.path.exists(local_path):
-        return
+        return  # Don't re-download an image
+    make_containing_dir(local_path)
+
     print(f"Downloading image {remote_url}...")
     img_data = requests.get(remote_url).content
     with open(local_path, 'wb') as handler:
@@ -86,6 +95,7 @@ class ParseTweetsJSONtoHTML:
 
         output_html += "</div>\n\n"
 
+        make_containing_dir(individual_tweet_file_path)
         with open(individual_tweet_file_path, 'w') as individual_tweet_file:
             individual_tweet_file.write('<html><head>')
             individual_tweet_file.write('<meta name="viewport" content="width=device-width, '
