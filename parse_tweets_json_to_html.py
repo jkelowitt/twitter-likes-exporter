@@ -1,9 +1,11 @@
 import datetime
 import json
 import os
+
 import requests
 
-class ParseTweetsJSONtoHTML():
+
+class ParseTweetsJSONtoHTML:
     def __init__(self):
         self._output_html_directory = None
         self._tweets_as_json = None
@@ -16,7 +18,8 @@ class ParseTweetsJSONtoHTML():
     def write_tweets_to_html(self):
         with open(self.output_index_path, 'w') as output_html:
             output_html.write('<html><head>')
-            output_html.write('<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0" />')
+            output_html.write('<meta name="viewport" content="width=device-width, '
+                              'initial-scale=1, minimum-scale=1.0, maximum-scale=1.0" />')
             output_html.write('<title>Liked Tweets Export</title>')
             output_html.write('<link rel="stylesheet" href="styles.css"></head>')
             output_html.write('<body><h1>Liked Tweets</h1><div class="tweet_list">')
@@ -34,7 +37,7 @@ class ParseTweetsJSONtoHTML():
             self.save_remote_image(tweet_data["user_avatar_url"], full_path)
         else:
             user_image_src = tweet_data["user_avatar_url"]
-        
+
         output_html += '<div class="tweet_author_wrapper">'
         output_html += f"<div class='tweet_author_image'><img loading='lazy' src='{user_image_src}'></div>"
         output_html += "<div class='author_context'><div class='tweet_author_handle'>"
@@ -55,24 +58,25 @@ class ParseTweetsJSONtoHTML():
                     self.save_remote_image(media_url, full_path)
                 else:
                     user_image_path = media_url
-                output_html += f"<div class='tweet_image'><a href='{user_image_path}' target='_blank'><img loading='lazy' src='{user_image_path}'></a></div>"
+                output_html += f"<div class='tweet_image'><a href='{user_image_path}'"
+                output_html += f" target='_blank'><img loading='lazy' src='{user_image_path}'></a></div>"
             output_html += "</div>\n"
-
 
         parsed_datetime = datetime.datetime.strptime(tweet_data['tweet_created_at'], "%a %b %d %H:%M:%S +0000 %Y")
         output_html += f"<div class='tweet_created_at'>{parsed_datetime.strftime('%m/%d/%Y %I:%M%p')}</div>"
         output_html += "<div class='twitter_link'>"
-        output_html += f"<a href='https://www.twitter.com/{tweet_data['user_handle']}/status/{tweet_data['tweet_id']}/' target='_blank'>Original tweet &#8599;</a> &#8226; "
+        output_html += f"<a href='https://www.twitter.com/{tweet_data['user_handle']}/status/{tweet_data['tweet_id']}/'"
+        output_html += " target='_blank'>Original tweet &#8599;</a> &#8226; "
         individual_tweet_file_path = f"{self.output_html_directory}/tweets/{tweet_data['tweet_id']}.html"
         output_html += f"<a href='tweets/{tweet_data['tweet_id']}.html' target='_blank'>Local version</a>"
         output_html += "</div>"
 
         output_html += "</div>\n\n"
 
-        
         with open(individual_tweet_file_path, 'w') as individual_tweet_file:
             individual_tweet_file.write('<html><head>')
-            individual_tweet_file.write('<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0" />')
+            individual_tweet_file.write('<meta name="viewport" content="width=device-width, '
+                                        'initial-scale=1, minimum-scale=1.0, maximum-scale=1.0" />')
             individual_tweet_file.write('<title>Liked Tweets Export</title>')
             individual_tweet_file.write('<link rel="stylesheet" href="../styles.css"></head>')
             individual_tweet_file.write('<body><div class="tweet_list">')
@@ -91,7 +95,7 @@ class ParseTweetsJSONtoHTML():
         with open(local_path, 'wb') as handler:
             handler.write(img_data)
 
-    def parse_text_for_html(self,input_text):
+    def parse_text_for_html(self, input_text):
         return input_text.encode('ascii', 'xmlcharrefreplace').decode()
 
     @property
@@ -114,9 +118,9 @@ class ParseTweetsJSONtoHTML():
 
         return self._tweets_as_json
 
+
 if __name__ == "__main__":
     parser = ParseTweetsJSONtoHTML()
     print(f"Saving tweets to {parser.output_index_path}...")
     parser.write_tweets_to_html()
     print(f"Done. Output file located at {parser.output_index_path}")
-
