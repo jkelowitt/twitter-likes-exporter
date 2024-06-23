@@ -3,6 +3,7 @@ import json
 import os
 import time
 
+import cv2
 import requests
 from tqdm import tqdm
 
@@ -48,6 +49,19 @@ def save_remote_media(remote_url, local_path):
 
     with open(local_path, 'wb') as handler:
         handler.write(img_data)
+
+
+def create_video_thumbnail(video_path, out_path):
+    video = cv2.VideoCapture(video_path)
+    success, image = video.read()
+
+    if not success:
+        print(f"\nError creating local thumbnail for {video_path}")
+        print(f"This file is likely broken.")
+        return ""  # Don't show a thumbnail if we couldn't make it
+
+    cv2.imwrite(out_path, image)
+    return out_path
 
 
 class ParseTweetsJSONtoHTML:
@@ -101,12 +115,19 @@ class ParseTweetsJSONtoHTML:
             output_html += "<div class='tweet_videos_wrapper'>"
             for media_url in tweet_data["tweet_video_urls"]:
                 if self.download_videos:
+                    # Download video
                     media_name = media_url.split("/")[-1]
                     user_video_path = f'videos/{media_name}'
                     full_path = f"{self.output_html_directory}/{user_video_path}"
                     save_remote_media(media_url, full_path)
+
+                    # Create video thumbnail
+                    thumbnail_path = f"{self.output_html_directory}/video_thumbs/{tweet_data['tweet_id']}.jpg"
+                    create_video_thumbnail(full_path, thumbnail_path)
+
                 else:
                     user_video_path = media_url
+
                 output_html += f"<div class='tweet_media'><video controls preload='none' "
                 output_html += f"poster='{tweet_data['tweet_video_urls'][0]}'><a href='{user_video_path}' "
                 output_html += f"target='_blank'>Download video</a><source src='{user_video_path}' "
@@ -123,6 +144,7 @@ class ParseTweetsJSONtoHTML:
                         save_remote_media(media_url, full_path)
                     else:
                         user_image_path = media_url
+
                     output_html += f"<div class='tweet_media'><a href='{user_image_path}' target='_blank'>"
                     output_html += f"<img loading='lazy' src='{user_image_path}'></a></div>"
                 output_html += "</div>\n"
