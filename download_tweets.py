@@ -20,8 +20,10 @@ class TweetDownloader():
             self.output_json_file_path = config_data.get('OUTPUT_JSON_FILE_PATH')
 
     def retrieve_all_likes(self):
+        request_delay = 0.5
+        rate_limit_delay = 20
+        
         all_tweets = []
-
         likes_page = self.retrieve_likes_page()
         page_cursor = self.get_cursor(likes_page)
         old_page_cursor = None
@@ -38,11 +40,13 @@ class TweetDownloader():
                     pbar.update(1)
 
             old_page_cursor = page_cursor
+            time.sleep(request_delay)
+
             likes_page = self.retrieve_likes_page(cursor=page_cursor)
             page_cursor = self.get_cursor(likes_page)
             if page_cursor == old_page_cursor:
-                print("\nPossibly rate limited by twitter, reattempting getting the likes page in 5 seconds...")
-                time.sleep(5)
+                print(f"\nPossibly rate limited by twitter, reattempting in {rate_limit_delay} seconds...")
+                time.sleep(rate_limit_delay)
                 likes_page = self.retrieve_likes_page(cursor=page_cursor)
                 page_cursor = self.get_cursor(likes_page)
 
