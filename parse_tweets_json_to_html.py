@@ -3,6 +3,7 @@ import json
 import os
 
 import requests
+from tqdm import tqdm
 
 
 def parse_text_for_html(input_text):
@@ -21,7 +22,6 @@ def save_remote_image(remote_url, local_path):
         return  # Don't re-download an image
     make_containing_dir(local_path)
 
-    print(f"Downloading image {remote_url}...")
     img_data = requests.get(remote_url).content
     with open(local_path, 'wb') as handler:
         handler.write(img_data)
@@ -45,7 +45,10 @@ class ParseTweetsJSONtoHTML:
             output_html.write('<title>Liked Tweets Export</title>')
             output_html.write('<link rel="stylesheet" href="styles.css"></head>')
             output_html.write('<body><h1>Liked Tweets</h1><div class="tweet_list">')
-            for tweet_data in self.tweets_as_json:
+            pbar = tqdm(self.tweets_as_json, dynamic_ncols=True)
+            for tweet_data in pbar:
+                tweet_link = f"https://x.com/_/status/{tweet_data['tweet_id']}"
+                pbar.set_description(f"Downloading tweet: {tweet_link}")
                 tweet_html = self.create_tweet_html(tweet_data)
                 output_html.write(tweet_html)
             output_html.write('</div></body></html>')
@@ -133,6 +136,4 @@ class ParseTweetsJSONtoHTML:
 
 if __name__ == "__main__":
     parser = ParseTweetsJSONtoHTML()
-    print(f"Saving tweets to {parser.output_index_path}...")
     parser.write_tweets_to_html()
-    print(f"Done. Output file located at {parser.output_index_path}")
