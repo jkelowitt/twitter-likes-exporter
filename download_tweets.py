@@ -22,7 +22,7 @@ class TweetDownloader():
     def retrieve_all_likes(self):
         request_delay = 0.5
         rate_limit_delay = 20
-        
+
         all_tweets = []
         likes_page = self.retrieve_likes_page()
         page_cursor = self.get_cursor(likes_page)
@@ -50,6 +50,7 @@ class TweetDownloader():
                 likes_page = self.retrieve_likes_page(cursor=page_cursor)
                 page_cursor = self.get_cursor(likes_page)
 
+        print(f"Found {len(all_tweets)} tweets")
         with open(self.output_json_file_path, 'w') as f:
             f.write(json.dumps(all_tweets))
 
