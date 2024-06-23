@@ -5,6 +5,19 @@ import os
 import requests
 
 
+def parse_text_for_html(input_text):
+    return input_text.encode('ascii', 'xmlcharrefreplace').decode()
+
+
+def save_remote_image(remote_url, local_path):
+    if os.path.exists(local_path):
+        return
+    print(f"Downloading image {remote_url}...")
+    img_data = requests.get(remote_url).content
+    with open(local_path, 'wb') as handler:
+        handler.write(img_data)
+
+
 class ParseTweetsJSONtoHTML:
     def __init__(self):
         self._output_html_directory = None
@@ -34,7 +47,7 @@ class ParseTweetsJSONtoHTML:
         if self.download_images:
             user_image_src = f'images/avatars/{tweet_data["user_id"]}.jpg'
             full_path = f"{self.output_html_directory}/{user_image_src}"
-            self.save_remote_image(tweet_data["user_avatar_url"], full_path)
+            save_remote_image(tweet_data["user_avatar_url"], full_path)
         else:
             user_image_src = tweet_data["user_avatar_url"]
 
@@ -42,11 +55,11 @@ class ParseTweetsJSONtoHTML:
         output_html += f"<div class='tweet_author_image'><img loading='lazy' src='{user_image_src}'></div>"
         output_html += "<div class='author_context'><div class='tweet_author_handle'>"
         output_html += f"<a href='https://www.twitter.com/{tweet_data['user_handle']}/' target='_blank'>"
-        output_html += f"@{self.parse_text_for_html(tweet_data['user_handle'])}</a></div>"
-        output_html += f"<div class='tweet_author_name'>{self.parse_text_for_html(tweet_data['user_name'])}</div>"
+        output_html += f"@{parse_text_for_html(tweet_data['user_handle'])}</a></div>"
+        output_html += f"<div class='tweet_author_name'>{parse_text_for_html(tweet_data['user_name'])}</div>"
         output_html += '</div></div>\n'
 
-        output_html += f"<div class='tweet_content'>{self.parse_text_for_html(tweet_data['tweet_content'])}</div>"
+        output_html += f"<div class='tweet_content'>{parse_text_for_html(tweet_data['tweet_content'])}</div>"
 
         if tweet_data["tweet_media_urls"]:
             output_html += "<div class='tweet_images_wrapper'>"
@@ -55,7 +68,7 @@ class ParseTweetsJSONtoHTML:
                     media_name = media_url.split("/")[-1]
                     user_image_path = f'images/tweets/{media_name}'
                     full_path = f"{self.output_html_directory}/{user_image_path}"
-                    self.save_remote_image(media_url, full_path)
+                    save_remote_image(media_url, full_path)
                 else:
                     user_image_path = media_url
                 output_html += f"<div class='tweet_image'><a href='{user_image_path}'"
@@ -86,17 +99,6 @@ class ParseTweetsJSONtoHTML:
             individual_tweet_file.write('</div></body></html>')
 
         return output_html
-
-    def save_remote_image(self, remote_url, local_path):
-        if os.path.exists(local_path):
-            return
-        print(f"Downloading image {remote_url}...")
-        img_data = requests.get(remote_url).content
-        with open(local_path, 'wb') as handler:
-            handler.write(img_data)
-
-    def parse_text_for_html(self, input_text):
-        return input_text.encode('ascii', 'xmlcharrefreplace').decode()
 
     @property
     def output_index_path(self):
