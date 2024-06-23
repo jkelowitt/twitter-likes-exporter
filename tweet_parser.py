@@ -1,3 +1,30 @@
+import re
+
+
+def remove_tag_param(url):
+    return re.sub(r'\?tag=\d*', '', url)
+
+
+def get_resolution(item):
+    match = re.search(r'vid/(\d*x\d*)', item)
+    if match:
+        resolution = match.group(1)
+        width, height = map(int, resolution.split('x'))
+        return width * height
+    return 0
+
+
+def get_item_with_max_resolution(array):
+    array_of_videos = list(filter(lambda item: '.mp4' in item, array))
+    item_with_max_res = array_of_videos[0]
+    for item in array_of_videos[1:]:
+        item_res = get_resolution(item)
+        item_with_max_res_res = get_resolution(item_with_max_res)
+        if item_res > item_with_max_res_res:
+            item_with_max_res = item
+    return item_with_max_res
+
+
 class TweetParser:
     def __init__(self, raw_tweet_json):
         self.is_valid_tweet = True
@@ -89,6 +116,12 @@ class TweetParser:
                 media_entries = self.key_data["legacy"]["extended_entities"].get("media", [])
                 for entry in media_entries:
                     if "video_info" in entry:
-                        for variant in entry["video_info"]["variants"]:
-                            self._video_urls.append(variant["url"])
+                        best_video_url = get_item_with_max_resolution(
+                            list(map(lambda item: item['url'], entry["video_info"]["variants"])))
+                        if best_video_url is None:
+                            for variant in entry["video_info"]["variants"]:
+                                if ".mp4" in variant["url"]:
+                                    self._video_urls.append(remove_tag_param(variant["url"]))
+                        else:
+                            self._video_urls.append(remove_tag_param(best_video_url))
         return self._video_urls

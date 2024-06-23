@@ -17,7 +17,7 @@ def make_containing_dir(fp: str) -> None:
         os.makedirs(containing_dir)
 
 
-def save_remote_image(remote_url, local_path):
+def save_remote_media(remote_url, local_path):
     if os.path.exists(local_path):
         return  # Don't re-download an image
     make_containing_dir(local_path)
@@ -36,6 +36,7 @@ class ParseTweetsJSONtoHTML:
             config_data = json.load(json_data_file)
             self.output_json_file_path = config_data.get('OUTPUT_JSON_FILE_PATH')
             self.download_images = config_data.get('DOWNLOAD_IMAGES')
+            self.download_videos = config_data.get('DOWNLOAD_VIDEOS')
 
     def write_tweets_to_html(self):
         with open(self.output_index_path, 'w') as output_html:
@@ -59,7 +60,7 @@ class ParseTweetsJSONtoHTML:
         if self.download_images:
             user_image_src = f'images/avatars/{tweet_data["user_id"]}.jpg'
             full_path = f"{self.output_html_directory}/{user_image_src}"
-            save_remote_image(tweet_data["user_avatar_url"], full_path)
+            save_remote_media(tweet_data["user_avatar_url"], full_path)
         else:
             user_image_src = tweet_data["user_avatar_url"]
 
@@ -73,19 +74,35 @@ class ParseTweetsJSONtoHTML:
 
         output_html += f"<div class='tweet_content'>{parse_text_for_html(tweet_data['tweet_content'])}</div>"
 
-        if tweet_data["tweet_media_urls"]:
-            output_html += "<div class='tweet_images_wrapper'>"
-            for media_url in tweet_data["tweet_media_urls"]:
-                if self.download_images:
+        if tweet_data["tweet_video_urls"]:
+            output_html += "<div class='tweet_videos_wrapper'>"
+            for media_url in tweet_data["tweet_video_urls"]:
+                if self.download_videos:
                     media_name = media_url.split("/")[-1]
-                    user_image_path = f'images/tweets/{media_name}'
-                    full_path = f"{self.output_html_directory}/{user_image_path}"
-                    save_remote_image(media_url, full_path)
+                    user_video_path = f'videos/tweets/{media_name}'
+                    full_path = f"{self.output_html_directory}/{user_video_path}"
+                    save_remote_media(media_url, full_path)
                 else:
-                    user_image_path = media_url
-                output_html += f"<div class='tweet_image'><a href='{user_image_path}'"
-                output_html += f" target='_blank'><img loading='lazy' src='{user_image_path}'></a></div>"
+                    user_video_path = media_url
+                output_html += f"<div class='tweet_video'><video controls preload='none' "
+                output_html += f"poster='{tweet_data['tweet_media_urls'][0]}'><a href='{user_video_path}' "
+                output_html += f"target='_blank'>Download video</a><source src='{user_video_path}' "
+                output_html += f"type='video/mp4' /></video></div>"
             output_html += "</div>\n"
+        else:
+            if tweet_data["tweet_media_urls"]:
+                output_html += "<div class='tweet_images_wrapper'>"
+                for media_url in tweet_data["tweet_media_urls"]:
+                    if self.download_images:
+                        media_name = media_url.split("/")[-1]
+                        user_image_path = f'images/tweets/{media_name}'
+                        full_path = f"{self.output_html_directory}/{user_image_path}"
+                        save_remote_media(media_url, full_path)
+                    else:
+                        user_image_path = media_url
+                    output_html += f"<div class='tweet_image'><a href='{user_image_path}' target='_blank'>"
+                    output_html += f"<img loading='lazy' src='{user_image_path}'></a></div>"
+                output_html += "</div>\n"
 
         parsed_datetime = datetime.datetime.strptime(tweet_data['tweet_created_at'], "%a %b %d %H:%M:%S +0000 %Y")
         output_html += f"<div class='tweet_created_at'>{parsed_datetime.strftime('%m/%d/%Y %I:%M%p')}</div>"
