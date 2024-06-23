@@ -27,7 +27,7 @@ body {
     min-height: 48px;
 }
 
-.tweet_author_image {
+.tweet_author_avatar {
     width: 48px;
     height: 48px;
     display: inline-block;
@@ -84,22 +84,21 @@ body {
     color: #3498db;
 }
 
-.tweet_images_wrapper {
+.tweet_media_wrapper {
     width: 100%;
     margin-bottom: 25px;
     margin-top: 10px;
     display: inline-block;
 }
 
-.tweet_images_wrapper .tweet_image {
+.tweet_media_wrapper .tweet_media {
     display: inline-block;
     margin-right: 15px;
     margin-top: 15px;
     overflow: hidden;
 }
 
-.tweet_images_wrapper .tweet_image img {
+.tweet_media_wrapper .tweet_media img {
     max-height: 200px;
     max-width: 400px;
 }
- 

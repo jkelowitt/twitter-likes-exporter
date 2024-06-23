@@ -88,7 +88,7 @@ class ParseTweetsJSONtoHTML:
             user_image_src = tweet_data["user_avatar_url"]
 
         output_html += '<div class="tweet_author_wrapper">'
-        output_html += f"<div class='tweet_author_image'><img loading='lazy' src='{user_image_src}'></div>"
+        output_html += f"<div class='tweet_author_avatar'><img loading='lazy' src='{user_image_src}'></div>"
         output_html += "<div class='author_context'><div class='tweet_author_handle'>"
         output_html += f"<a href='https://www.twitter.com/{tweet_data['user_handle']}/' target='_blank'>"
         output_html += f"@{parse_text_for_html(tweet_data['user_handle'])}</a></div>"
@@ -107,14 +107,14 @@ class ParseTweetsJSONtoHTML:
                     save_remote_media(media_url, full_path)
                 else:
                     user_video_path = media_url
-                output_html += f"<div class='tweet_video'><video controls preload='none' "
+                output_html += f"<div class='tweet_media'><video controls preload='none' "
                 output_html += f"poster='{tweet_data['tweet_video_urls'][0]}'><a href='{user_video_path}' "
                 output_html += f"target='_blank'>Download video</a><source src='{user_video_path}' "
                 output_html += f"type='video/mp4' /></video></div>"
             output_html += "</div>\n"
         else:
             if tweet_data["tweet_media_urls"]:
-                output_html += "<div class='tweet_images_wrapper'>"
+                output_html += "<div class='tweet_media_wrapper'>"
                 for media_url in tweet_data["tweet_media_urls"]:
                     if self.download_images:
                         media_name = media_url.split("/")[-1]
@@ -123,7 +123,7 @@ class ParseTweetsJSONtoHTML:
                         save_remote_media(media_url, full_path)
                     else:
                         user_image_path = media_url
-                    output_html += f"<div class='tweet_image'><a href='{user_image_path}' target='_blank'>"
+                    output_html += f"<div class='tweet_media'><a href='{user_image_path}' target='_blank'>"
                     output_html += f"<img loading='lazy' src='{user_image_path}'></a></div>"
                 output_html += "</div>\n"
 
