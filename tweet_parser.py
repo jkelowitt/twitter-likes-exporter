@@ -1,16 +1,30 @@
-class TweetParser():
+class TweetParser:
     def __init__(self, raw_tweet_json):
         self.is_valid_tweet = True
         self.raw_tweet_json = raw_tweet_json
         self._media_urls = None
 
-        if not raw_tweet_json["content"].get("itemContent", None):
+        _tweet_id = raw_tweet_json['entryId'].split('-')[1]
+        _twitter_link = f"https://x.com/_/status/{_tweet_id}"
+
+        empty_item_content = not raw_tweet_json["content"].get("itemContent", None)
+        if empty_item_content:
             self.is_valid_tweet = False
+            # print(f"Tried to retrieve ({_twitter_link}), but it wasn't actually a tweet")  # Who cares?
+            return
+
+        if "result" not in raw_tweet_json["content"]["itemContent"]["tweet_results"]:
+            self.is_valid_tweet = False
+            print(f"Tried to retrieve ({_twitter_link}), and failed to get any data")
             return
 
         self.key_data = raw_tweet_json["content"]["itemContent"]["tweet_results"]["result"]
-        if not self.key_data.get("legacy", None):
+
+        legacy_tweet = not self.key_data.get("legacy", None)
+        if legacy_tweet:
             self.is_valid_tweet = False
+            print(f"Tried to retrieve ({_twitter_link}), but it's a legacy (?) tweet")
+            return
 
     def tweet_as_json(self):
         return {
