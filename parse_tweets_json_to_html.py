@@ -102,7 +102,7 @@ class ParseTweetsJSONtoHTML:
             for media_url in tweet_data["tweet_video_urls"]:
                 if self.download_videos:
                     media_name = media_url.split("/")[-1]
-                    user_video_path = f'videos/tweets/{media_name}'
+                    user_video_path = f'videos/{media_name}'
                     full_path = f"{self.output_html_directory}/{user_video_path}"
                     save_remote_media(media_url, full_path)
                 else:
